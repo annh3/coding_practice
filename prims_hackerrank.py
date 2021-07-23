@@ -25,9 +25,35 @@ def prims(n, edges, start):
     weight = 0
     for v1, v2, w in edges:
         heappush(heap, (w,v1,v2))
-    mst_count = 0
-    while mst_count < len(edges):
+    mst_so_far = set()
+    mst_so_far.add(start)
+    nodes_rem = set(list(range(1,n+1)))
+    nodes_rem.remove(start)
+    print(nodes_rem)
+    m = len(edges)
+    while len(nodes_rem) > 0:
         w, v1, v2 = heappop(heap)
+        #print("w: ", w, " v1: ", v1, " v2: ", v2)
+        reinsert = []
+        while (v1 in nodes_rem and v2 in nodes_rem) or (v1 in mst_so_far and v2 in mst_so_far):   
+            reinsert.append((w,v1,v2))
+            w, v1, v2 = heappop(heap)
+            print("w: ", w, " v1: ", v1, " v2: ", v2)
+        # v1 and v2 are in separate sets
+        for dw, dv1, dv2 in reinsert:
+            heappush(heap, (dw,dv1,dv2))
+        weight += w
+        if v1 in mst_so_far:
+            nodes_rem.remove(v2)
+            mst_so_far.add(v2)
+        else:
+            nodes_rem.remove(v1)
+            mst_so_far.add(v1)
+        #print("w: ", w)
+        #print("v1: ", v1, " v2: ", v2)
+        #print("nodes rem: ", nodes_rem)
+    return weight
+        
         
 
 if __name__ == '__main__':
