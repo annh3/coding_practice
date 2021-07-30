@@ -1,78 +1,81 @@
-class WordFilter:
+import collections
+Tree = lambda: collections.defaultdict(Tree) # oh wow you can literally name this anything
+WEIGHT = False
+import pdb
+"""
 
-    def __init__(self, words: List[str]):
-        self.prefixes_tree = {c: {'idxs': [], 'tree':{}} for c in string.ascii_lowercase}
-        for i,word in enumerate(words):
-            word = word.lower()
-            cur = self.prefixes_tree[word[0]]
-            for l in word[1:]:
-                if l in cur:
-                    cur['idxs'].append(i)
-                    cur = cur['tree'][l]
-                    
-                else:
-                    cur[l] = {'idxs': [], 'tree':{}}
-                    cur[l]['idxs'].append(i)
-                    cur = cur[l]['tree']
-            #cur['*'] = {i}
-        
-        self.suffixes_tree = {c: {} for c in string.ascii_lowercase}
-        
-        for i,word in enumerate(words):
-            word = word[::-1]
-            word = word.lower()
-            cur = self.suffixes_tree[word[0]]
-            for l in word[1:]:
-                if l in cur:
-                    cur['idxs'].append(i)
-                    cur = cur['tree'][l]
-                    
-                else:
-                    cur[l] = {'idxs': [], 'tree':{}}
-                    cur[l]['idxs'].append(i)
-                    cur = cur[l]['tree']
-        
+"""
 
-    def f(self, prefix: str, suffix: str) -> int:
-        suffix_idx = -1
-        prefix_idx = -1
-        print("exists: ", len(self.prefixes_tree))
-        # search prefix tree
-        cur = self.prefixes_tree
-        broke_out = False
-        print("prefix: ", prefix)
-        for l in prefix:
-            print("l: ", l)
-            if l in cur:
-                cur = cur[l]['tree']
-                #print("cur length: ", len(cur))
-            else:
-                print("breaking out")
-                broke_out = True
-        
-        print("cur at bottom: ", cur)
-        if not broke_out:
-            # traverse the tree
-            prefix_idx = max(cur['idxs'])
-            
-            
-        # search suffix tree
-        cur = self.suffixes_tree
-        broke_out = False
-        
-        for l in suffix:
-            if l in cur:
-                cur = cur['tree'][l]
-            else:
-                broke_out = True
-            
-        if not broke_out:
-            suffix_idx = max(cur['idxs'])
-            
-        return max(prefix_idx, suffix_idx)
+class WordFilter(object):
+    def __init__(self, words):
+        self.trie1 = Tree() #prefix
+        self.trie2 = Tree() #suffix
+        for weight, word in enumerate(words):
+            cur = self.trie1
+
+            # First, add the current word to the top of the prefix tree, cur
+            # [FALSE] -> {idx1, idx2,...}
+            self.addw(cur, weight)
+            # Then, 
+            for letter in word:
+                # change cur to be the Tree stored at cur[letter]
+                # how is this ok?
+                # defaultdict thing... try more implementations
+                cur = cur[letter]
+                self.addw(cur, weight)
+
+            cur = self.trie2
+            self.addw(cur, weight)
+            for letter in word[::-1]:
+                cur = cur[letter]
+                self.addw(cur, weight)
+
+    """
+    We never change the global value of WEIGHT, set to False
+
+    [FALSE] -> {index}
+
+    Otherwise, we've stepped into the key 'letter', and create a new
+    Default dict there 
+
+    We can step into this later
+    """
+    def addw(self, node, w):
+        if WEIGHT not in node:
+            # we've traversed to the end of this path
+            node[WEIGHT] = {w}
+        else:
+            # add to list of words that share this prefix
+            node[WEIGHT].add(w)
+            #pdb.set_trace()
+
+    def f(self, prefix, suffix):
+        cur1 = self.trie1
+        for letter in prefix:
+            if letter not in cur1: return -1
+            cur1 = cur1[letter]
+
+        cur2 = self.trie2
+        for letter in suffix[::-1]:
+            if letter not in cur2: return -1
+            cur2 = cur2[letter]
+
+        pdb.set_trace()
+        return max(cur1[WEIGHT] & cur2[WEIGHT])
         
 
 
 # Your WordFilter object will be instantiated and called as such:
 # obj = WordFilter(words)
 # param_1 = obj.f(prefix,suffix)
+
+def test1():
+    list_of_strings = ['apple', 'candle', 'listserve', 'grace', 'icecream', 'luxury', 'travel']
+    word_filter = WordFilter(list_of_strings)
+    res = word_filter.f('tr','el') # should return 6
+    print("result of search: ", res)
+
+
+if __name__ == "__main__":
+    test1()
+
