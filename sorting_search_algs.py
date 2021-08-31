@@ -63,7 +63,7 @@ def max_middle_subarray(A,l,mid,h):
 	cursum = 0
 	left_idx = mid
 
-	for i in range(mid,l): # does this work?
+	for i in reversed(range(l,mid+1)): # does this work? - NICE fixed it!
 		cursum += A[i]
 		if cursum >= lsum:
 			lsum = cursum
